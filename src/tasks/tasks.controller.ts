@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
@@ -11,6 +12,7 @@ import {
 import { TasksService } from './tasks.service';
 import { Task } from './task.model';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { SearchTask } from './dto/search-task.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -24,9 +26,8 @@ export class TasksController {
 
   //Get one tasks
   @Get('/:id')
-  getTask(@Param('id') id: string): Task {
-    const taskId = +id;
-    return this.tasksService.getTaskById(taskId);
+  getTask(@Param('id', ParseIntPipe) id: number): Task {
+    return this.tasksService.getTaskById(id);
   }
 
   //Add new task
@@ -36,6 +37,11 @@ export class TasksController {
   //   @Body('description') description: string,
   addTask(@Body() createTaskDto: CreateTaskDto): Task {
     return this.tasksService.createTask(createTaskDto);
+  }
+
+  @Post('/search')
+  searchAllTasks(@Body() s: SearchTask): Task[] {
+    return this.tasksService.searchTask(s);
   }
 
   // Update/Replace task
@@ -52,8 +58,7 @@ export class TasksController {
 
   //Delete task
   @Delete('/:id')
-  RemoveTask(@Param('id') id: string) {
-    const taskId = +id;
-    return this.tasksService.deleteTask(taskId);
+  RemoveTask(@Param('id', ParseIntPipe) id: number) {
+    return this.tasksService.deleteTask(id);
   }
 }

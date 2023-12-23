@@ -1,7 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Task, TaskStatus } from './task.model';
 import { getRandom } from 'src/utils/utils';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { SearchTask } from './dto/search-task.dto';
 
 @Injectable()
 export class TasksService {
@@ -15,10 +20,39 @@ export class TasksService {
     const task = this.tasks.find((task: Task): boolean => {
       return task.id == taskId;
     });
+    if (!task) {
+      throw new NotFoundException(`Unable to find task with id ${taskId}`);
+    }
     return task;
   }
 
+  searchTask(s: SearchTask): Task[] {
+    const { title, status } = s;
+
+    if (title && status) {
+      return this.tasks.filter((val) => {
+        return val.title.toLowerCase().includes(title) && val.status == status;
+      });
+    }
+
+    if (title) {
+      return this.tasks.filter((val) => {
+        return val.title.toLowerCase().includes(title);
+      });
+    }
+
+    if (status) {
+      return this.tasks.filter((val) => {
+        return val.status == status;
+      });
+    }
+    throw new BadRequestException();
+  }
+
   createTask(createTaskDto: CreateTaskDto): Task {
+    if (!createTaskDto.isValid()) {
+      throw new BadRequestException('Mandatory fields cant be empty!');
+    }
     const { title, description } = createTaskDto;
     const task: Task = {
       id: getRandom(1, 100),
@@ -43,7 +77,6 @@ export class TasksService {
     const { id } = task;
     const oldTask = this.tasks.find((val: Task, idx: number): boolean => {
       if (val.id == id) {
-        console.log(idx);
         this.tasks[idx] = { ...val, ...task };
         return true;
       }
@@ -53,6 +86,9 @@ export class TasksService {
   }
 
   deleteTask(taskId: number) {
+    /* 
+    this.tasks =  this.tasks.filter((task: Task) => return task.id != taskId)
+    */
     const idx = this.tasks.findIndex((task: Task): boolean => {
       return task.id == taskId;
     });
