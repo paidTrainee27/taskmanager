@@ -1,3 +1,4 @@
+//  Moved to entity class in repository
 export interface Task {
   id: number;
   title: string;
